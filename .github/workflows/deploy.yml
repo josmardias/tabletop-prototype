@@ -20,7 +20,7 @@ jobs:
         node-version: '18.x'
         cache: 'npm'
     - run: npm ci
-    - run: npx parcel build src/index.html
+    - run: npx parcel build --public-url ./ src/index.html
 
     - name: Setup Pages
       uses: actions/configure-pages@v1
