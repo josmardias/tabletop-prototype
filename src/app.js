@@ -85,59 +85,43 @@ const HelpText = () => {
         </p>
         <p>
           Define an attribute based on another attribute (that is anywhere above
-          it): <br />
+          it) <br />
           <em>Sword: DX+1</em>
         </p>
         <p>
-          Action (must start with "_") displays a button on action panel: <br />
-          <em>_SwordDamage: 1d6 + ST - 10</em>
+          Action (must start with "_") displays a button on action panel <br />
+          <em>_SwordDamage: ST - 10</em>
+        </p>
+        <p>
+          Dice rolls can be called inside actions <br />
+          <em>_SwordDamage: 2d6 + ST - 10</em>
         </p>
         <p>
           Use equality/inequality operators to display success on logs <br />
           <em>_Sword: 3d6 {'<='} Sword </em>
         </p>
         <p>
-          Use "{'&'}" to reference target attribute/action <br />
+          Use "{'&'}" to reference enermy target attribute/action <br />
           <em>
             _Sword: 1d20 + ST {'>'} {'&'}CA
           </em>
         </p>
         <p>
-          Use "{'>>'}" to display chained action on log <br />
+          Use "{'>>'}" to chain actions <br />
           <em>
             _Sword: 3d6 {'<='} Sword {'>>'} {'&'}_Dodge
           </em>
         </p>
         <p>
-          Use "{'|'}" to display multiple options of chained actions on log{' '}
-          <br />
+          Use "{'$N'}" where N is a number (example {'$0'}, {'$1'}, {'$2'}...)
+          to reuse previous steps of chained actions <br />
           <em>
-            _Sword: 3d6 {'<='} Sword {'>>'} {'&'}_Dodge|{'&'}_Parry|{'&'}_Block
+            _Sword: 1d20 {'>'} {'&'}CA {'>>'} _SwordDamage + {'$0'}
           </em>
         </p>
         <p>
-          Action chaining for the win <br />
-          <em>
-            _Sword: 3d6 {'<='} Sword {'>>'} {'&'}_Dodge|{'&'}_Parry|{'&'}_Block{' '}
-            {'>>'} _SwordDamage
-          </em>
-        </p>
-        <p>
-          Use "{'?'}" as margin of success on chained action <br />
-          <em>
-            _Sword: 1d20 {'>'} {'&'}CA {'>>'} _SwordDamage + {'?'}
-          </em>
-        </p>
-        <p>
-          Use "{'!'}" to force roll the action <br />
-          <em>
-            _DiceRoll: 3d6 <br />
-            _Sword: !_DiceRoll {'<='} Sword
-          </em>
-        </p>
-        <p>
-          An attribute starting with "{'@'}" defines a "critical" for an action
-          of same name (can be value or start..end) <br />
+          An attribute starting with "{'@'}" defines a "critical success" for an
+          action of same name <br />
           <em>
             @DiceRoll: 3 <br />
             _DiceRoll: 3d6 <br />
@@ -169,7 +153,7 @@ const HelpText = () => {
             DamageBonus: 2 <br />
             Sword: STR + Proficiency <br />
             SwordDamage: STR + DamageBonus <br />
-            _Sword: Sword + !_DiceRoll {'>='} {'&'}CA {'>>'} _SwordDamage <br />
+            _Sword: Sword + _DiceRoll {'>='} {'&'}CA {'>>'} _SwordDamage <br />
           </em>
         </p>
         <p>
