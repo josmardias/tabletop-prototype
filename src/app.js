@@ -1,52 +1,175 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { evaluate } from 'mathjs'
 
-const initialLog = [
-  // {
-  //   id: 1,
-  //   actorName: 'Alice',
-  //   actionName: 'attacks',
-  //   actionTarget: 'Bob',
-  //   actionResult: '5 damage',
-  // },
-  // {
-  //   id: 2,
-  //   actorName: 'Alice',
-  //   actionName: 'attacks',
-  //   actionTarget: 'Bob',
-  //   actionResult: '5 damage',
-  // },
-  // {
-  //   id: 3,
-  //   actorName: 'Alice',
-  //   actionName: 'attacks',
-  //   actionTarget: 'Bob',
-  //   actionResult: '5 damage',
-  // },
-  // {
-  //   id: 4,
-  //   actorName: 'Alice',
-  //   actionName: 'attacks',
-  //   actionTarget: 'Bob',
-  //   actionResult: '5 damage',
-  // },
-]
+const initialLog = []
+
+// const initialSheet = 'ST: 10\nDX: 10\nSword: DX + 1\n_Sword: 3d6 <= Sword'
+const initialSheet = `\
+ST: 10
+DX: 10
+Broadsword: DX + 1
+_SwordAttack: 3d6 <= Broadsword
+`
+
+const rollDice = (dice) => {
+  const [count, sides] = dice.split('d').map((str) => Number.parseInt(str))
+
+  return new Array(count)
+    .fill(0)
+    .map(() => Math.floor(Math.random() * sides) + 1)
+    .reduce((acc, n) => acc + n, 0)
+}
+
+const calculateAction = (actor, target, action) => {
+  const dices = action.match(/(\dd\d)/g) || []
+  const rolledDices = dices.map((dice) => rollDice(dice))
+
+  const actionComputedDices = dices.reduce((acc, dice, i) => {
+    return acc.replace(dice, rolledDices[i])
+  }, action)
+
+  const comparators = actionComputedDices.match(/(<=|>=|<|>)/g)
+
+  if (!comparators)
+    return { margin: evaluate(actionComputedDices, actor.attributes) }
+
+  const comparator = comparators[0]
+
+  const [leftSide, rightSide] = actionComputedDices
+    .split(comparator)
+    .map((str) => evaluate(str, actor.attributes))
+
+  let success, margin
+
+  switch (comparator) {
+    case '>':
+      success = leftSide > rightSide
+      margin = leftSide - rightSide
+      break
+    case '>=':
+      success = leftSide >= rightSide
+      margin = leftSide - rightSide
+      break
+    case '<':
+      success = leftSide < rightSide
+      margin = rightSide - leftSide
+      break
+    case '<=':
+      success = leftSide <= rightSide
+      margin = rightSide - leftSide
+      break
+  }
+
+  return { success, margin, dices: rolledDices }
+}
+
+const attributeReducer = (acc, row) => {
+  if (!row || !row.trim()) return acc
+
+  const [attr, formula] = row.split(':')
+
+  acc[attr.trim()] = evaluate(formula, acc)
+  return acc
+}
+
+const actionReducer = (acc, formula) => {
+  const [key, value] = formula.split(':')
+  acc[key] = value
+  return acc
+}
+
+const parseSheet = (sheet) => {
+  const lines = sheet.split('\n').map((row) => row.trim())
+
+  const attributes = lines
+    .filter((row) => row[0] !== '_')
+    .reduce(attributeReducer, {})
+
+  const actions = lines
+    .filter((row) => row[0] === '_')
+    .map((str) => str.slice(1))
+    .reduce(actionReducer, {})
+
+  return { attributes, actions }
+}
+
+const emptyCharacter = {
+  attributes: {},
+  actions: {},
+}
+
+const emptyCharacter1 = { name: 'P1', ...emptyCharacter }
+const emptyCharacter2 = { name: 'P2', ...emptyCharacter }
 
 export const App = () => {
+  const textareaRef = useRef(null)
   const { log: battleLog, push, reset } = useLog(initialLog)
+  const [character1, setCharacter1] = useState(emptyCharacter1)
+  const [character2, setCharacter2] = useState(emptyCharacter2)
 
-  const handleAction = useCallback((actionResult) => {
-    push(actionResult)
+  const characterMap = useMemo(
+    () => ({
+      [character1.name]: character1,
+      [character2.name]: character2,
+    }),
+    [character1, character2],
+  )
+
+  const handleAction = useCallback(
+    (characterName, action) => {
+      const actor = characterMap[characterName]
+      const target = Object.values(characterMap).find((o) => o !== actor)
+
+      const result = calculateAction(actor, target, action)
+      push(result)
+    },
+    [characterMap],
+  )
+
+  const handleCalculate = useCallback(() => {
+    const sheet = textareaRef.current.value
+
+    let character
+    try {
+      character = parseSheet(sheet)
+    } catch (e) {
+      console.error(e)
+      return
+    }
+
+    setCharacter1({ name: character1.name, ...character })
+  }, [character1])
+
+  useEffect(() => {
+    handleCalculate()
   }, [])
 
   return (
     <div>
       <HelpText />
+      <button onClick={handleCalculate}>Calculate</button>
       <div style={styles.panels}>
         <div style={styles.leftPanel}>
-          <Character name="P1" onAction={handleAction}></Character>
+          <textarea
+            ref={textareaRef}
+            style={characterStyles.textarea}
+            defaultValue={initialSheet}
+          />
+        </div>
+        <div style={styles.middlePanel}>
+          <Character
+            name={character1.name}
+            attributes={character1.attributes}
+            actions={character1.actions}
+            onAction={(action) => handleAction(character1.name, action)}
+          ></Character>
           <br />
-          {/* <Character name="P2" onAction={handleAction}></Character> */}
+          {/* <Character
+            name="P2"
+            attributes={c2.attributes}
+            actions={c2.actions}
+            onAction={handleAction}
+          ></Character> */}
         </div>
         <div style={styles.rightPanel}>
           <BattleLog logs={battleLog} />
@@ -62,6 +185,11 @@ const styles = {
     maxHeight: 600,
   },
   leftPanel: {
+    border: '1px solid',
+    boxSizing: 'border-box',
+    padding: 5,
+  },
+  middlePanel: {
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
@@ -198,120 +326,11 @@ const battleLogStyles = {
   },
 }
 
-const attrReducer = (acc, row) => {
-  if (!row || !row.trim()) return acc
-
-  const [attr, formula] = row.split(':')
-
-  acc[attr.trim()] = evaluate(formula, acc)
-  return acc
-}
-
-const actionReducer = (acc, formula) => {
-  const [key, value] = formula.split(':')
-  acc[key] = value
-  return acc
-}
-
-const rollDice = (dice) => {
-  const [count, sides] = dice.split('d').map((str) => Number.parseInt(str))
-
-  return new Array(count)
-    .fill(0)
-    .map(() => Math.floor(Math.random() * sides) + 1)
-    .reduce((acc, n) => acc + n, 0)
-}
-
-// const initialSheet = 'ST: 10\nDX: 10\nSword: DX + 1\n_Sword: 3d6 <= Sword'
-const initialSheet = `\
-ST: 10
-DX: 10
-Sword: DX + 1
-_Sword: 3d6 <= Sword
-`
-
-const Character = ({ name, onAction }) => {
-  const [sheet, setSheet] = useState(initialSheet)
-  const textareaRef = useRef(null)
-
-  // console.log({ sheet })
-
-  const attributes = useMemo(
-    () =>
-      sheet
-        .split('\n')
-        .map((row) => row.trim())
-        .filter((row) => row[0] !== '_')
-        .reduce(attrReducer, {}),
-    [sheet],
-  )
-
-  // console.log({ attributes })
-
-  const actions = useMemo(
-    () =>
-      sheet
-        .split('\n')
-        .map((row) => row.trim())
-        .filter((row) => row[0] === '_')
-        .reduce(actionReducer, {}),
-    [sheet],
-  )
-
-  const handleSave = useCallback(() => setSheet(textareaRef.current.value), [])
-
-  const calculateAction = (formula, attributes) => {
-    const dices = formula.match(/(\dd\d)/g)
-    const rolledDices = dices.map((dice) => rollDice(dice))
-
-    const formula2 = dices.reduce((acc, dice, i) => {
-      return acc.replace(dice, rolledDices[i])
-    }, formula)
-
-    const comparators = formula2.match(/(<=|>=|<|>)/g)
-
-    if (!comparators) return { margin: evaluate(formula2, attributes) }
-
-    const comparator = comparators[0]
-
-    const [leftSide, rightSide] = formula2
-      .split(comparator)
-      .map((str) => evaluate(str, attributes))
-
-    let success, margin
-
-    switch (comparator) {
-      case '>':
-        success = leftSide > rightSide
-        margin = leftSide - rightSide
-        break
-      case '>=':
-        success = leftSide >= rightSide
-        margin = leftSide - rightSide
-        break
-      case '<':
-        success = leftSide < rightSide
-        margin = rightSide - leftSide
-        break
-      case '<=':
-        success = leftSide <= rightSide
-        margin = rightSide - leftSide
-        break
-    }
-
-    return { success, margin, dices: rolledDices }
-  }
-
+const Character = ({ name, attributes, actions, onAction }) => {
   return (
     <div>
       <p>{name}</p>
-      <button onClick={handleSave}>Calculate</button>
       <div style={characterStyles.panels}>
-        <textarea
-          ref={textareaRef}
-          style={characterStyles.textarea}
-          defaultValue={sheet}
-        />
         <div>
           <h4>Stats</h4>
           {Object.entries(attributes).map(([key, value], i) => (
@@ -321,14 +340,7 @@ const Character = ({ name, onAction }) => {
           ))}
           <h4>Actions</h4>
           {Object.entries(actions).map(([key, value], i) => (
-            <button
-              key={key}
-              title={value}
-              onClick={() => {
-                const actionResult = calculateAction(value, attributes)
-                onAction({ actor: name, ...actionResult })
-              }}
-            >
+            <button key={key} title={value} onClick={() => onAction(value)}>
               {key}
             </button>
           ))}
