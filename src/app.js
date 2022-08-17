@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { evaluate } from 'mathjs'
+import { calculateAction } from './sheet/calculate-action'
+import { parseSheet } from './sheet/parse-sheet.js'
 
 const initialLog = []
 
@@ -11,106 +12,21 @@ Broadsword: DX + 1
 _SwordAttack: 3d6 <= Broadsword
 `
 
-const rollDice = (dice) => {
-  const [count, sides] = dice.split('d').map((str) => Number.parseInt(str))
-
-  return new Array(count)
-    .fill(0)
-    .map(() => Math.floor(Math.random() * sides) + 1)
-    .reduce((acc, n) => acc + n, 0)
-}
-
-const calculateAction = (actor, target, action) => {
-  const dices = action.match(/(\dd\d)/g) || []
-  const rolledDices = dices.map((dice) => rollDice(dice))
-
-  const actionComputedDices = dices.reduce((acc, dice, i) => {
-    return acc.replace(dice, rolledDices[i])
-  }, action)
-
-  const comparators = actionComputedDices.match(/(<=|>=|<|>)/g)
-
-  if (!comparators)
-    return { margin: evaluate(actionComputedDices, actor.attributes) }
-
-  const comparator = comparators[0]
-
-  const [leftSide, rightSide] = actionComputedDices
-    .split(comparator)
-    .map((str) => evaluate(str, actor.attributes))
-
-  let success, margin
-
-  switch (comparator) {
-    case '>':
-      success = leftSide > rightSide
-      margin = leftSide - rightSide
-      break
-    case '>=':
-      success = leftSide >= rightSide
-      margin = leftSide - rightSide
-      break
-    case '<':
-      success = leftSide < rightSide
-      margin = rightSide - leftSide
-      break
-    case '<=':
-      success = leftSide <= rightSide
-      margin = rightSide - leftSide
-      break
-  }
-
-  return { success, margin, dices: rolledDices }
-}
-
-const attributeReducer = (acc, row) => {
-  if (!row || !row.trim()) return acc
-
-  const [attr, formula] = row.split(':')
-
-  acc[attr.trim()] = evaluate(formula, acc)
-  return acc
-}
-
-const actionReducer = (acc, formula) => {
-  const [key, value] = formula.split(':')
-  acc[key] = value
-  return acc
-}
-
-const parseSheet = (sheet) => {
-  const lines = sheet.split('\n').map((row) => row.trim())
-
-  const attributes = lines
-    .filter((row) => row[0] !== '_')
-    .reduce(attributeReducer, {})
-
-  const actions = lines
-    .filter((row) => row[0] === '_')
-    .map((str) => str.slice(1))
-    .reduce(actionReducer, {})
-
-  return { attributes, actions }
-}
-
 const emptyCharacter = {
   attributes: {},
   actions: {},
 }
 
-const emptyCharacter1 = { name: 'P1', ...emptyCharacter }
-const emptyCharacter2 = { name: 'P2', ...emptyCharacter }
-
 export const App = () => {
   const textareaRef = useRef(null)
   const { log: battleLog, push, reset } = useLog(initialLog)
-  const [character1, setCharacter1] = useState(emptyCharacter1)
-  const [character2, setCharacter2] = useState(emptyCharacter2)
+  const [character1, setCharacter1] = useState(emptyCharacter)
+  const [character2, setCharacter2] = useState(emptyCharacter)
 
   const characterMap = useMemo(
     () => ({
-      [character1.name]: character1,
-      [character2.name]: character2,
+      P1: character1,
+      P2: character2,
     }),
     [character1, character2],
   )
@@ -137,7 +53,7 @@ export const App = () => {
       return
     }
 
-    setCharacter1({ name: character1.name, ...character })
+    setCharacter1(character)
   }, [character1])
 
   useEffect(() => {
@@ -158,10 +74,10 @@ export const App = () => {
         </div>
         <div style={styles.middlePanel}>
           <Character
-            name={character1.name}
+            name="P1"
             attributes={character1.attributes}
             actions={character1.actions}
-            onAction={(action) => handleAction(character1.name, action)}
+            onAction={(action) => handleAction('P1', action)}
           ></Character>
           <br />
           {/* <Character
@@ -185,16 +101,19 @@ const styles = {
     maxHeight: 600,
   },
   leftPanel: {
+    flexGrow: 6,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
   },
   middlePanel: {
+    flexGrow: 1,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
   },
   rightPanel: {
+    flexGrow: 1,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
