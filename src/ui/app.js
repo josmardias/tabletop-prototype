@@ -21,43 +21,47 @@ const emptyCharacter = {
 }
 
 export const App = () => {
-  const textareaRef = useRef(null)
+  const inputCharacterSheet1 = useRef(null)
+  const inputCharacterSheet2 = useRef(null)
   const { log: battleLog, push, reset } = useLog(initialLog)
   const [character1, setCharacter1] = useState(emptyCharacter)
   const [character2, setCharacter2] = useState(emptyCharacter)
 
-  const characterMap = useMemo(
-    () => ({
-      P1: character1,
-      P2: character2,
-    }),
-    [character1, character2],
-  )
-
   const handleAction = useCallback(
     (characterName, action) => {
+      const characterMap = {
+        P1: character1,
+        P2: character2,
+      }
+
       const actor = characterMap[characterName]
       const target = Object.values(characterMap).find((o) => o !== actor)
 
       const result = calculateAction(actor, target, action)
       push(result)
     },
-    [characterMap],
+    [character1, character2],
   )
 
   const handleCalculate = useCallback(() => {
-    const sheet = textareaRef.current.value
-
-    let character
     try {
-      character = parseSheet(sheet)
+      const sheetText = inputCharacterSheet1.current.value
+      const sheet = parseSheet(sheetText)
+      setCharacter1(sheet)
     } catch (e) {
       console.error(e)
       return
     }
 
-    setCharacter1(character)
-  }, [character1])
+    try {
+      const sheetText = inputCharacterSheet2.current.value
+      const sheet = parseSheet(sheetText)
+      setCharacter2(sheet)
+    } catch (e) {
+      console.error(e)
+      return
+    }
+  }, [])
 
   useEffect(() => {
     handleCalculate()
@@ -70,7 +74,12 @@ export const App = () => {
       <div style={styles.panels}>
         <div style={styles.leftPanel}>
           <textarea
-            ref={textareaRef}
+            ref={inputCharacterSheet1}
+            style={styles.sheetInput}
+            defaultValue={initialSheet}
+          />
+          <textarea
+            ref={inputCharacterSheet2}
             style={styles.sheetInput}
             defaultValue={initialSheet}
           />
@@ -83,12 +92,12 @@ export const App = () => {
             onAction={(action) => handleAction('P1', action)}
           ></Character>
           <br />
-          {/* <Character
+          <Character
             name="P2"
-            attributes={c2.attributes}
-            actions={c2.actions}
-            onAction={handleAction}
-          ></Character> */}
+            attributes={character2.attributes}
+            actions={character2.actions}
+            onAction={(action) => handleAction('P2', action)}
+          ></Character>
         </div>
         <div style={styles.rightPanel}>
           <BattleLog logs={battleLog} />
