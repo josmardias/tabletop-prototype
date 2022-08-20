@@ -2,14 +2,15 @@ services:
   app:
     image: node:18-alpine
     user: node
+    read_only: true
     working_dir: /app
     volumes:
-      - ./:/app:delegated
-      # terminal history and npm cache
+      - ./:/app
       - node_home:/home/node/
     command: npm start
     ports:
-      - '1234:1234/tcp'
+      - 1234:1234/tcp
 
 volumes:
+  # terminal history and npm cache
   node_home: {}
