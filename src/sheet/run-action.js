@@ -1,7 +1,7 @@
 import { evaluate } from 'mathjs'
 import { rollDice } from './roll-dice.js'
 
-export const calculateAction = (actor, target, action) => {
+export const runAction = (actor, target, action) => {
   const dices = action.match(/(\dd\d)/g) || []
   const rolledDices = dices.map((dice) => rollDice(dice))
 

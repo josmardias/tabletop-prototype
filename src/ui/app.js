@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { calculateAction } from '../sheet/calculate-action'
+import { runAction } from '../sheet/run-action'
 import { parseSheet } from '../sheet/parse-sheet.js'
 import { BattleLog } from './battle-log.js'
 import { Help } from './help.js'
@@ -33,7 +33,7 @@ export const App = () => {
       const actor = characterMap[characterName]
       const target = Object.values(characterMap).find((o) => o !== actor)
 
-      const result = calculateAction(actor, target, action)
+      const result = runAction(actor, target, action)
       push(result)
     },
     [character1, character2],
