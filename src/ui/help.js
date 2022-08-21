@@ -67,34 +67,6 @@ export const Help = () => {
           Disable a line by prepend it with # <br />
           <em># Sword: 3d6 {'<='} 12</em>
         </p>
-        <p>
-          DnD 5e attack example <br />
-          <em>
-            @DiceRoll: 20 <br />
-            _DiceRoll: 1d20 <br />
-            STR: 3 <br />
-            Proficiency: 3 <br />
-            DamageBonus: 2 <br />
-            Sword: STR + Proficiency <br />
-            SwordDamage: STR + DamageBonus <br />
-            _Sword: Sword + _DiceRoll {'>='} {'&'}CA {'>>'} _SwordDamage <br />
-          </em>
-        </p>
-        <p>
-          GURPS 4e attack example <br />
-          <em>
-            @DiceRoll: 3 <br />
-            @DiceRoll: 4 <br />
-            @DiceRoll: {'?'} {'>'} 10 <br />
-            _DiceRoll: 3d6 <br />
-            DX: 12 <br />
-            Sword: STR + Proficiency <br />
-            _SwingDamage: 2d6 - 1 <br />
-            _SwordDamage: !_SwingDamage + 1 <br />
-            _Sword: !_DiceRoll {'<='} Sword {'>>'} {'&'}_Dodge|{'&'}_Parry|{'&'}
-            _Block {'>>'} _SwordDamage
-          </em>
-        </p>
       </details>
     </div>
   )

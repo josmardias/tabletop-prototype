@@ -4,16 +4,12 @@ import { parseSheet } from '../sheet/parse-sheet.js'
 import { BattleLog } from './battle-log.js'
 import { Help } from './help.js'
 import { Character } from './character.js'
+import {
+  SHEET_EXAMPLE_GURPS,
+  SHEET_EXAMPLE_DND5E,
+} from '../sheet/example-sheet'
 
 const initialLog = []
-
-// const initialSheet = 'ST: 10\nDX: 10\nSword: DX + 1\n_Sword: 3d6 <= Sword'
-const initialSheet = `\
-ST: 10
-DX: 10
-Broadsword: DX + 1
-_SwordAttack: 3d6 <= Broadsword
-`
 
 const emptyCharacter = {
   attributes: {},
@@ -63,6 +59,20 @@ export const App = () => {
     }
   }, [])
 
+  const handleLoadSheet = useCallback((event) => {
+    const sheetMap = {
+      gurps: SHEET_EXAMPLE_GURPS,
+      dnd: SHEET_EXAMPLE_DND5E,
+    }
+
+    const sheetId = event.target.dataset.sheet
+
+    const sheet = sheetMap[sheetId]
+
+    inputCharacterSheet1.current.value = sheet
+    inputCharacterSheet2.current.value = sheet
+  }, [])
+
   useEffect(() => {
     handleCalculate()
   }, [])
@@ -70,18 +80,26 @@ export const App = () => {
   return (
     <div>
       <Help />
-      <button onClick={handleCalculate}>Calculate</button>
+      <p>
+        Load example:
+        <button data-sheet="gurps" onClick={handleLoadSheet}>
+          GURPS
+        </button>
+        <button data-sheet="dnd" onClick={handleLoadSheet}>
+          D&D 5e
+        </button>
+      </p>
       <div style={styles.panels}>
         <div style={styles.leftPanel}>
           <textarea
             ref={inputCharacterSheet1}
             style={styles.sheetInput}
-            defaultValue={initialSheet}
+            defaultValue=""
           />
           <textarea
             ref={inputCharacterSheet2}
             style={styles.sheetInput}
-            defaultValue={initialSheet}
+            defaultValue=""
           />
         </div>
         <div style={styles.middlePanel}>
@@ -103,6 +121,7 @@ export const App = () => {
           <BattleLog logs={battleLog} />
         </div>
       </div>
+      <button onClick={handleCalculate}>Calculate</button>
     </div>
   )
 }
