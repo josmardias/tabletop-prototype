@@ -24,7 +24,7 @@ export const App = () => {
   const [character2, setCharacter2] = useState(emptyCharacter)
 
   const handleAction = useCallback(
-    (characterName, action) => {
+    (characterName, actionName) => {
       const characterMap = {
         P1: character1,
         P2: character2,
@@ -33,7 +33,7 @@ export const App = () => {
       const actor = characterMap[characterName]
       const target = Object.values(characterMap).find((o) => o !== actor)
 
-      const result = runAction(actor, target, action)
+      const result = runAction(actor, target, actionName)
       push(result)
     },
     [character1, character2],
@@ -107,14 +107,14 @@ export const App = () => {
             name="P1"
             attributes={character1.attributes}
             actions={character1.actions}
-            onAction={(action) => handleAction('P1', action)}
+            onAction={(actionName) => handleAction('P1', actionName)}
           ></Character>
           <br />
           <Character
             name="P2"
             attributes={character2.attributes}
             actions={character2.actions}
-            onAction={(action) => handleAction('P2', action)}
+            onAction={(actionName) => handleAction('P2', actionName)}
           ></Character>
         </div>
         <div style={styles.rightPanel}>

@@ -12,7 +12,7 @@ export const Character = ({ name, attributes, actions, onAction }) => {
           ))}
           <h4>Actions</h4>
           {Object.entries(actions).map(([key, value], i) => (
-            <button key={key} title={value} onClick={() => onAction(value)}>
+            <button key={key} title={value} onClick={() => onAction(key)}>
               {key}
             </button>
           ))}

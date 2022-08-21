@@ -1,22 +1,28 @@
 import { evaluate } from 'mathjs'
-import { rollDice } from './roll-dice.js'
+import { rollDice as _rollDice } from './roll-dice.js'
 
-export const runAction = (actor, target, action) => {
-  const dices = action.match(/(\dd\d)/g) || []
-  const rolledDices = dices.map((dice) => rollDice(dice))
+export const runAction = (actor, target, actionName, rollDice = _rollDice) => {
+  const action = actor.actions[actionName]
 
-  const actionComputedDices = dices.reduce((acc, dice, i) => {
-    return acc.replace(dice, rolledDices[i])
-  }, action)
+  const rolledDices = []
 
-  const comparators = actionComputedDices.match(/(<=|>=|<|>)/g)
+  const actionComputed = action.replace(/(\dd\d+)/g, (dice) => {
+    const roll = rollDice(dice)
+    rolledDices.push(roll)
+    return roll
+  })
+
+  const comparators = actionComputed.match(/(<=|>=|<|>)/g)
 
   if (!comparators)
-    return { margin: evaluate(actionComputedDices, actor.attributes) }
+    return {
+      margin: evaluate(actionComputed, actor.attributes),
+      dices: rolledDices,
+    }
 
   const comparator = comparators[0]
 
-  const [leftSide, rightSide] = actionComputedDices
+  const [leftSide, rightSide] = actionComputed
     .split(comparator)
     .map((str) => evaluate(str, actor.attributes))
 
