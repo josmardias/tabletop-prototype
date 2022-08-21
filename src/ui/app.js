@@ -60,6 +60,11 @@ export const App = () => {
   }, [])
 
   const handleLoadSheet = useCallback((event) => {
+    const loadConfirmMessage = `Loading ${event.target.dataset.label}. Current changes will be lost. Proceed?`
+    if (!confirm(loadConfirmMessage)) {
+      return
+    }
+
     const sheetMap = {
       gurps: SHEET_EXAMPLE_GURPS,
       dnd: SHEET_EXAMPLE_DND5E,
@@ -84,10 +89,10 @@ export const App = () => {
       <Help />
       <p>
         Load example:
-        <button data-sheet="gurps" onClick={handleLoadSheet}>
+        <button data-sheet="gurps" data-label="GURPS" onClick={handleLoadSheet}>
           GURPS
         </button>
-        <button data-sheet="dnd" onClick={handleLoadSheet}>
+        <button data-sheet="dnd" data-label="D&D 5e" onClick={handleLoadSheet}>
           D&D 5e
         </button>
       </p>
