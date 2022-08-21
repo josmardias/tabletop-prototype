@@ -132,27 +132,27 @@ const styles = {
     maxHeight: 600,
   },
   leftPanel: {
-    flexGrow: 6,
+    flexGrow: 1,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
   },
   middlePanel: {
-    flexGrow: 1,
+    flexGrow: 3,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
   },
   rightPanel: {
-    flexGrow: 1,
+    flexGrow: 3,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
     overflowY: 'scroll',
   },
   sheetInput: {
-    minWidth: 200,
-    minHeight: 200,
+    minWidth: 250,
+    minHeight: 250,
   },
 }
 
