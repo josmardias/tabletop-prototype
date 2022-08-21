@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "start": "parcel src/index.html",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava --watch"
   },
   "dependencies": {
+    "ava": "^4.3.1",
     "mathjs": "^11.0.1",
     "parcel": "^2.6.2",
     "react": "^18.2.0",
