@@ -138,17 +138,16 @@ const styles = {
     padding: 5,
   },
   middlePanel: {
-    flexGrow: 3,
+    flexGrow: 1,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
   },
   rightPanel: {
-    flexGrow: 3,
+    flexGrow: 4,
     border: '1px solid',
     boxSizing: 'border-box',
     padding: 5,
-    overflowY: 'scroll',
   },
   sheetInput: {
     minWidth: 250,

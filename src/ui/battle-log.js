@@ -15,7 +15,5 @@ export const BattleLog = ({ logs }) => {
 }
 
 const styles = {
-  container: {
-    minWidth: 200,
-  },
+  container: {},
 }
