@@ -30,7 +30,7 @@ export const Help = () => {
             _Sword: 1d20 + ST {'>'} {'&'}CA
           </em>
         </p>
-        <p>
+        {/* <p>
           Use "{'>>'}" to chain actions <br />
           <em>
             _Sword: 3d6 {'<='} Sword {'>>'} {'&'}_Dodge
@@ -66,7 +66,7 @@ export const Help = () => {
         <p>
           Disable a line by prepend it with # <br />
           <em># Sword: 3d6 {'<='} 12</em>
-        </p>
+        </p> */}
       </details>
     </div>
   )
