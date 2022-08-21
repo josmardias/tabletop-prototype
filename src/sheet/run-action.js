@@ -6,11 +6,16 @@ export const runAction = (actor, target, actionName, rollDice = _rollDice) => {
 
   const rolledDices = []
 
-  const actionComputed = action.replace(/(\dd\d+)/g, (dice) => {
+  let actionComputed = action.replace(/(\dd\d+)/g, (dice) => {
     const roll = rollDice(dice)
     rolledDices.push(roll)
     return roll
   })
+
+  actionComputed = actionComputed.replace(
+    /&(\S+)/g,
+    (_, attribute) => target.attributes[attribute],
+  )
 
   const comparators = actionComputed.match(/(<=|>=|<|>)/g)
 

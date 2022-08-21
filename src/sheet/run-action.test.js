@@ -183,3 +183,19 @@ test('action inequality with dices', (t) => {
 
   t.deepEqual(result, { dices: [11], margin: 3, success: true })
 })
+
+test('action using target sheet', (t) => {
+  const text = `
+    ST: 3
+    Aura: 1
+    _SwordAttack: 1d20 + ST >= &CA + &Bonus - Aura
+  `
+  const sheet = parseSheet(text)
+  const targetSheet = parseSheet('CA: 16 \n Bonus: 3')
+
+  const fakeRoll = () => 13
+
+  const result = runAction(sheet, targetSheet, 'SwordAttack', fakeRoll)
+
+  t.deepEqual(result, { dices: [13], margin: -2, success: false })
+})
