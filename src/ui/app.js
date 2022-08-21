@@ -33,8 +33,12 @@ export const App = () => {
       const actor = characterMap[characterName]
       const target = Object.values(characterMap).find((o) => o !== actor)
 
-      const result = runAction(actor, target, actionName)
-      push(result)
+      try {
+        const result = runAction(actor, target, actionName)
+        push(result)
+      } catch (e) {
+        console.error(e)
+      }
     },
     [character1, character2],
   )
