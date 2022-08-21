@@ -71,6 +71,8 @@ export const App = () => {
 
     inputCharacterSheet1.current.value = sheet
     inputCharacterSheet2.current.value = sheet
+
+    handleCalculate()
   }, [])
 
   useEffect(() => {
